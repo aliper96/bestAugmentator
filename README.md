@@ -11,3 +11,5 @@ Things that I will use here:
 The main idea is to create a appliacation that will help us to select the parameters for our augmentation. 
 We will be able to visualize what is happening to our image before doing to for loop. We are going to have a lot of filters and transformation and there is going 
 to be a checkbox for each.
+
+![](miaug.JPG)
