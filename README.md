@@ -1,4 +1,5 @@
 # bestAugmentator
+## The app is working at the moment just for 1 image, but the script is working with folders and labels :) 
 
 I'm going to work on the best data Augmentator, and use this application in CV
 
