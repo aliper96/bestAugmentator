@@ -33,7 +33,7 @@ class filters(Enum):
     griddistortion    = auto()
     togray    = auto()
 
-PROBABILITIES = {
+PROBABILITIES_GLOB = {
 
     filters.resize:1,
     filters.horizontalflip:1,
@@ -71,19 +71,43 @@ class Ui(QtWidgets.QDialog):
         [dspox.setSingleStep(0.05) for dspox in self.doublespinbox_list]
         self.allg.released.connect(self.generateIMG)
         self.selectImage.released.connect(self.loadImage)
-
         self.todo0.released.connect(self.todo1f)
         self.todo1.released.connect(self.todo0f)
-
+        self.pushbutton_list = self.findChildren(QtWidgets.QPushButton)
+        [dbutton.released.connect(self.justOneFilter) for dbutton in self.pushbutton_list if "b_" in dbutton.objectName()]
         self.image = ""
         self.show()
+
+    def justOneFilter(self):
+        wid = self.sender()
+        dic_aux =  dict(PROBABILITIES_GLOB)
+        dic_aux = dict.fromkeys(dic_aux, 0)
+        for a in filters:
+            if (a.name == self.sender().objectName().replace("b_","")):
+                val_bus = a
+        dic_aux[val_bus] = 1
+        strong = self.compose(dic_aux)
+        self.label.clear()
+        img = cv2.imread(self.image)
+        r = strong(image=img)
+        image_show = r["image"]
+        cv2.imwrite('ima_gen' + '.png', image_show)
+        h, w, channels = image_show.shape
+        bgrx = np.empty((h, w, 4), np.uint8, "C")
+        bgrx[..., :3] = image_show
+        qimage = QtGui.QImage(bgrx.data, w, h, QtGui.QImage.Format_RGB32)
+        qimage.data = bgrx
+
+        self.label.setPixmap(QtGui.QPixmap.fromImage(qimage).scaled(self.label.width(),self.label.height(),QtCore.Qt.KeepAspectRatio))
+
+
     def todo0f(self):
         [dspox.setValue(0.00) for dspox in self.doublespinbox_list]
 
     def todo1f(self):
         [dspox.setValue(1.00) for dspox in self.doublespinbox_list]
 
-    def updateData(self):
+    def updateData(self,PROBABILITIES):
 
         PROBABILITIES[filters.resize]= self.d_resize.value()
         PROBABILITIES[filters.horizontalflip]     = self.d_horizontalflip.value()
@@ -93,7 +117,7 @@ class Ui(QtWidgets.QDialog):
         PROBABILITIES[filters.blur]     = self.d_blur.value()
         PROBABILITIES[filters.randombrightnesscontrast]     = self.d_randombrightnesscontrast.value()
         PROBABILITIES[filters.clahe]     = self.d_clahe.value()
-        # PROBABILITIES[filters.vertflip]     = self.d_vertflip.value()
+        PROBABILITIES[filters.vertflip]     = self.d_vertflip.value()
         PROBABILITIES[filters.elastictransform]     = self.d_elastictransform.value()
         PROBABILITIES[filters.randomcontrast90]     = self.d_randomcontrast90.value()
         PROBABILITIES[filters.tosepia]     = self.d_tosepia.value()
@@ -107,7 +131,7 @@ class Ui(QtWidgets.QDialog):
         PROBABILITIES[filters.griddistortion]     = self.d_griddistortion.value()
         PROBABILITIES[filters.togray]     = self.d_togray.value()
 
-    def compose(self):
+    def compose(self,PROBABILITIES):
         strong = A.Compose([
             # A.resize(IMAGE_SIZE[1],IMAGE_SIZE[0],p=PROBABILITIES[filters.resize]),
             A.HorizontalFlip(p=PROBABILITIES[filters.horizontalflip]),
@@ -134,8 +158,8 @@ class Ui(QtWidgets.QDialog):
 
 
     def generateIMG(self):
-        self.updateData()
-        strong = self.compose()
+        self.updateData(PROBABILITIES_GLOB)
+        strong = self.compose(PROBABILITIES_GLOB)
         self.label.clear()
         img = cv2.imread(self.image)
         r = strong(image=img)
