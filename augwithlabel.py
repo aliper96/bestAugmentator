@@ -122,11 +122,11 @@ if ORDER_NAME == "name":
                 lb_path = lb_path.replace(lb_path.split(".")[-1],EXTENSION_LB)
                 lb = cv2.imread(lb_path)
                 r = strong(image =img, mask = lb)
-                cv2.imwrite(SAVEIMG+'ima_gen'+str(i)+'.png',r['image'])
-                cv2.imwrite(SAVELB+'lb_gen'+str(i)+'.png',r["mask"])
+                cv2.imwrite(SAVEIMG+str(epoch)+'ima_gen'+str(i)+'.png',r['image'])
+                cv2.imwrite(SAVELB+str(epoch)+'lb_gen'+str(i)+'.png',r["mask"])
             else:
                 r = strong(image =img)
-                cv2.imwrite(SAVEIMG+'ima_gen'+str(i)+'.png',r['image'])
+                cv2.imwrite(SAVEIMG+str(epoch)+'ima_gen'+str(i)+'.png',r['image'])
 
 
 
@@ -142,11 +142,11 @@ elif ORDER_NAME == "order":
         for i in range(len(img_list)):
                 if LABELING:
                     r = strong(image =img_list[i], mask = lb_list[i])
-                    cv2.imwrite(SAVEIMG+'ima_gen'+str(i)+'.png',r['image'])
-                    cv2.imwrite(SAVELB+'lb_gen'+str(i)+'.png',r["mask"])
+                    cv2.imwrite(SAVEIMG+str(epoch)+'ima_gen'+str(i)+'.png',r['image'])
+                    cv2.imwrite(SAVELB+str(epoch)+'lb_gen'+str(i)+'.png',r["mask"])
                 else:
                     r = strong(image =img_list[i])
-                    cv2.imwrite(SAVEIMG+'ima_gen'+str(i)+'.png',r['image'])
+                    cv2.imwrite(SAVEIMG+str(epoch)+'ima_gen'+str(i)+'.png',r['image'])
 
 
 
