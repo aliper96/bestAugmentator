@@ -23,5 +23,9 @@ Script: augwithlabel.py
 
 Dataset: [DRIVE: Digital Retinal Images for Vessel Extraction](https://drive.grand-challenge.org/)
 
-![](res/img.JPG)
-![](res/lbel.JPG)
+IMAGES   GENERATED         |  LABEL GENERATED
+:-------------------------:|:-------------------------:
+![](res/img.JPG)           |  ![](res/lbel.JPG)
+
+
+
