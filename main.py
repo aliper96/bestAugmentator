@@ -4,7 +4,8 @@ from enum import Enum,auto
 import albumentations as A
 import cv2
 import numpy as np
-
+import glob
+import datetime
 
 IMAGE_SIZE = (250,250)          # image dimension in pixels (x and y equal) default (None, None)
 
@@ -73,10 +74,102 @@ class Ui(QtWidgets.QDialog):
         self.selectImage.released.connect(self.loadImage)
         self.todo0.released.connect(self.todo1f)
         self.todo1.released.connect(self.todo0f)
+        self.imageFolder.released.connect(self.fimageFolder)
+        self.labelFolder.released.connect(self.flabelFolder)
+        self.comboBox.currentIndexChanged.connect(self.showImage)
+
+        self.gone.released.connect(self.generateOne)
+        self.gall.released.connect(self.generateAll)
+
         self.pushbutton_list = self.findChildren(QtWidgets.QPushButton)
         [dbutton.released.connect(self.justOneFilter) for dbutton in self.pushbutton_list if "b_" in dbutton.objectName()]
         self.image = ""
+        self.imagespath = ""
+        self.labelspath = ""
         self.show()
+
+    def generateAll(self):
+        self.updateData(PROBABILITIES_GLOB)
+        strong = self.compose(PROBABILITIES_GLOB)
+        save_path = (QtWidgets.QFileDialog.getExistingDirectory(self, "Select Image Directory"))
+
+        if (self.labelcheckbox.isChecked()):
+            save_path_lb = (QtWidgets.QFileDialog.getExistingDirectory(self, "Select Label Directory"))
+            for image,label in zip(self.imagespath,self.labelspath):
+                img = cv2.imread(image)
+                lb = cv2.imread(label)
+                for i in range(0, self.spinBox.value()):
+                    r = strong(image=img,mask=lb)
+                    image_show = r["image"]
+                    lb_show = r["mask"]
+                    images_time = str(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S.%f"))
+                    cv2.imwrite(
+                        save_path + '/' + str(i) + images_time + '.png',
+                        image_show)
+                    cv2.imwrite(
+                        save_path_lb + '/' + str(i) + images_time + '.png',
+                        lb_show)
+        else:
+            for image in self.imagespath:
+                img = cv2.imread(image)
+                for i in range(0, self.spinBox.value()):
+                    r = strong(image=img)
+                    image_show = r["image"]
+                    cv2.imwrite(save_path + '/' + str(i) + str(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S.%f")) + '.png',
+                                image_show)
+
+    def generateOne(self):
+        self.updateData(PROBABILITIES_GLOB)
+        strong = self.compose(PROBABILITIES_GLOB)
+        save_path =  (QtWidgets.QFileDialog.getExistingDirectory(self, "Select Image Directory"))
+
+        self.image = self.comboBox.currentText()
+        img = cv2.imread(self.image)
+        if (self.labelcheckbox.isChecked()):
+            save_path_lb = (QtWidgets.QFileDialog.getExistingDirectory(self, "Select Label Directory"))
+            lb = cv2.imread(self.labelspath[self.comboBox.currentIndex()])
+            for i in range(0, self.spinBox.value()):
+                r = strong(image=img,mask=lb)
+                image_show = r["image"]
+                lb_show = r["mask"]
+                images_time = str(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S.%f"))
+
+                cv2.imwrite(
+                    save_path + '/' + str(i) + images_time + '.png',
+                    image_show)
+                cv2.imwrite(
+                    save_path_lb + '/' + str(i) + images_time + '.png',
+                    lb_show)
+        else:
+            for i in range(0,self.spinBox.value()):
+                r = strong(image=img)
+                image_show = r["image"]
+                cv2.imwrite(save_path+'/'+str(i)+str(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S.%f"))+ '.png', image_show)
+
+    def showImage(self):
+        self.updateData(PROBABILITIES_GLOB)
+        strong = self.compose(PROBABILITIES_GLOB)
+        self.image = self.comboBox.currentText()
+        img = cv2.imread(self.image)
+        r = strong(image=img)
+        image_show = r["image"]
+        cv2.imwrite('ima_gen' + '.png', image_show)
+        qimage = self.img_2_QImage(image_show)
+        self.label.setPixmap(QtGui.QPixmap.fromImage(qimage).scaled(self.label.width(),self.label.height(),QtCore.Qt.KeepAspectRatio))
+
+
+    def fimageFolder(self):
+        img_path =  (QtWidgets.QFileDialog.getExistingDirectory(self, "Select Image Directory"))
+        self.imagespath =  [glob.glob(img_path + "/" + x) for x in ("*.png", "*.jpg", "*.jpeg")]
+        self.imagespath = [ img for img in self.imagespath if img != []][0]
+        self.comboBox.addItems(self.imagespath)
+
+    def flabelFolder(self):
+        lb_path =  (QtWidgets.QFileDialog.getExistingDirectory(self, "Select Image Directory"))
+        self.labelspath =  [glob.glob(lb_path + "/" + x) for x in ("*.png", "*.jpg", "*.jpeg")]
+        self.labelspath = [ img for img in self.labelspath if img != []][0]
+        self.labelcheckbox.setChecked(True)
+
 
     def justOneFilter(self):
         wid = self.sender()
@@ -92,14 +185,16 @@ class Ui(QtWidgets.QDialog):
         r = strong(image=img)
         image_show = r["image"]
         cv2.imwrite('ima_gen' + '.png', image_show)
+        qimage = self.img_2_QImage(image_show)
+
+        self.label.setPixmap(QtGui.QPixmap.fromImage(qimage).scaled(self.label.width(),self.label.height(),QtCore.Qt.KeepAspectRatio))
+    def img_2_QImage(self,image_show):
         h, w, channels = image_show.shape
         bgrx = np.empty((h, w, 4), np.uint8, "C")
         bgrx[..., :3] = image_show
         qimage = QtGui.QImage(bgrx.data, w, h, QtGui.QImage.Format_RGB32)
         qimage.data = bgrx
-
-        self.label.setPixmap(QtGui.QPixmap.fromImage(qimage).scaled(self.label.width(),self.label.height(),QtCore.Qt.KeepAspectRatio))
-
+        return qimage
 
     def todo0f(self):
         [dspox.setValue(0.00) for dspox in self.doublespinbox_list]
@@ -165,13 +260,7 @@ class Ui(QtWidgets.QDialog):
         r = strong(image=img)
         image_show = r["image"]
         cv2.imwrite('ima_gen' + '.png', image_show)
-        h, w, channels = image_show.shape
-
-        bgrx = np.empty((h, w, 4), np.uint8, "C")
-        bgrx[..., :3] = image_show
-        qimage = QtGui.QImage(bgrx.data, w, h, QtGui.QImage.Format_RGB32)
-        qimage.data = bgrx
-
+        qimage = self.img_2_QImage(image_show)
         self.label.setPixmap(QtGui.QPixmap.fromImage(qimage).scaled(self.label.width(),self.label.height(),QtCore.Qt.KeepAspectRatio))
 
     def loadImage(self):
