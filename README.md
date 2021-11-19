@@ -14,6 +14,18 @@ The main idea is to create a appliacation that will help us to select the parame
 We will be able to visualize what is happening to our image before doing to for loop. We are going to have a lot of filters and transformation and there is going 
 to be a checkbox for each.
 
+### Select Image: Pic just One Image
+### Image Folder: Select a folder that contains the images for the augmentation. It will find [*.jpg,*.png,*.jpeg]
+### Label Folder: Select a folder that contains the labels for the augmentation. It will find [*.jpg,*.png,*.jpeg] 
+
+If u want to do the augmentation, u have tu check the checkbox infront of the Label Folder.
+U can also select the current image.
+U can set a probability to apply a filter.
+All the filters can be checked toghether or u can check just One of the clicking on the correspondig button.
+
+### Generate All: will do the aumentation for all the images in the folder
+### Generate One: Just one image ( The current selected) will be augmented.
+
 ![](res/res3.JPG)
 
 
