@@ -25,6 +25,7 @@ All the filters can be checked toghether or u can check just One of the clicking
 
 ### Generate All: will do the aumentation for all the images in the folder
 ### Generate One: Just one image ( The current selected) will be augmented.
+#### Both buttuns will ask u for the the folder where you want to save the aumented images, if the labeling is enabled, it will ask for another folder to save the labels.
 
 ![](res/res3.JPG)
 
