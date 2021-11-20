@@ -15,8 +15,8 @@ We will be able to visualize what is happening to our image before doing to for 
 to be a checkbox for each.
 
 ### Select Image: Pic just One Image
-### Image Folder: Select a folder that contains the images for the augmentation. It will find [*.jpg,*.png,*.jpeg]
-### Label Folder: Select a folder that contains the labels for the augmentation. It will find [*.jpg,*.png,*.jpeg] 
+### Image Folder: Select a folder that contains the images for the augmentation. It will find [ *.jpg, *.png, *.jpeg]
+### Label Folder: Select a folder that contains the labels for the augmentation. It will find [ *.jpg, *.png, *.jpeg] 
 
 If u want to do the augmentation, u have tu check the checkbox infront of the Label Folder.
 U can also select the current image.
