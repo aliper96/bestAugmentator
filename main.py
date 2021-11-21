@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, uic,QtGui,QtCore
+from PyQt5 import QtWidgets, uic,QtGui,QtCore, QtTest
 import sys
 from enum import Enum,auto
 import albumentations as A
@@ -6,9 +6,10 @@ import cv2
 import numpy as np
 import glob
 import datetime
-
+import threading
 IMAGE_SIZE = (250,250)          # image dimension in pixels (x and y equal) default (None, None)
-
+import cgitb
+cgitb.enable(format = 'text')
 
 # creating enumerations using class
 class filters(Enum):
@@ -69,6 +70,12 @@ class Ui(QtWidgets.QDialog):
         super(Ui, self).__init__()
         uic.loadUi('inicio.ui', self)
         self.doublespinbox_list = self.findChildren(QtWidgets.QDoubleSpinBox)
+        stu_id_regx = QtCore.QRegExp('^imglabel_[0-9]*')
+
+        self.generatedImages = self.findChildren(QtWidgets.QLabel,stu_id_regx)
+        self.generatedImages = np.array(self.generatedImages)
+
+        print(len(self.generatedImages))
         [dspox.setSingleStep(0.05) for dspox in self.doublespinbox_list]
         self.allg.released.connect(self.generateIMG)
         self.selectImage.released.connect(self.loadImage)
@@ -86,9 +93,26 @@ class Ui(QtWidgets.QDialog):
         self.image = ""
         self.imagespath = ""
         self.labelspath = ""
+
+        self.setAllValue(0.50)
+        self.d_randomsizecrop.setValue(0.00)
+        self.d_centercrop.setValue(0.00)
+
+
         self.show()
 
+    def showListView(self, imagesList):
+
+        hasta = min (8,len(imagesList))
+        for pimg in range(0,hasta):
+            pimgpix = QtGui.QPixmap.fromImage(self.img_2_QImage(imagesList[pimg]))
+            self.generatedImages[pimg].setPixmap(pimgpix.scaled(self.generatedImages[pimg].width(), self.generatedImages[pimg].height(),
+                                                                        QtCore.Qt.KeepAspectRatio))
+
+
     def generateAll(self):
+        imagesList = []
+
         self.updateData(PROBABILITIES_GLOB)
         strong = self.compose(PROBABILITIES_GLOB)
         save_path = (QtWidgets.QFileDialog.getExistingDirectory(self, "Select Image Directory"))
@@ -109,6 +133,7 @@ class Ui(QtWidgets.QDialog):
                     cv2.imwrite(
                         save_path_lb + '/' + str(i) + images_time + '.png',
                         lb_show)
+                imagesList.append(image_show)
         else:
             for image in self.imagespath:
                 img = cv2.imread(image)
@@ -117,8 +142,12 @@ class Ui(QtWidgets.QDialog):
                     image_show = r["image"]
                     cv2.imwrite(save_path + '/' + str(i) + str(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S.%f")) + '.png',
                                 image_show)
+                imagesList.append(image_show)
+        self.showListView(imagesList)
+
 
     def generateOne(self):
+        imagesList = []
         self.updateData(PROBABILITIES_GLOB)
         strong = self.compose(PROBABILITIES_GLOB)
         save_path =  (QtWidgets.QFileDialog.getExistingDirectory(self, "Select Image Directory"))
@@ -140,12 +169,18 @@ class Ui(QtWidgets.QDialog):
                 cv2.imwrite(
                     save_path_lb + '/' + str(i) + images_time + '.png',
                     lb_show)
+                imagesList.append(image_show)
         else:
             for i in range(0,self.spinBox.value()):
                 r = strong(image=img)
                 image_show = r["image"]
                 cv2.imwrite(save_path+'/'+str(i)+str(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S.%f"))+ '.png', image_show)
+                imagesList.append(image_show)
 
+        self.showListView(imagesList)
+
+
+        print("se ha terminado el Show")
     def showImage(self):
         self.updateData(PROBABILITIES_GLOB)
         strong = self.compose(PROBABILITIES_GLOB)
@@ -197,11 +232,13 @@ class Ui(QtWidgets.QDialog):
         return qimage
 
     def todo0f(self):
-        [dspox.setValue(0.00) for dspox in self.doublespinbox_list]
+        self.setAllValue(0.00)
 
     def todo1f(self):
-        [dspox.setValue(1.00) for dspox in self.doublespinbox_list]
+        self.setAllValue(1.00)
 
+    def setAllValue(self,val):
+        [dspox.setValue(val) for dspox in self.doublespinbox_list]
     def updateData(self,PROBABILITIES):
 
         PROBABILITIES[filters.resize]= self.d_resize.value()
@@ -269,10 +306,14 @@ class Ui(QtWidgets.QDialog):
         copy = QtGui.QPixmap(imagen).scaled(self.label.width(),self.label.height(),QtCore.Qt.KeepAspectRatio)
         self.label.setPixmap(copy)
 
+# def except_hook(cls, exception, traceback):
+#     sys.__excepthook__(cls, exception, traceback)
 
 
+if __name__ == "__main__":
 
 
-app = QtWidgets.QApplication(sys.argv)
-window = Ui()
-app.exec_()
+    app = QtWidgets.QApplication(sys.argv)
+
+    window = Ui()
+    app.exec_()
