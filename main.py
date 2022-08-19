@@ -7,7 +7,7 @@ import numpy as np
 import glob
 import datetime
 import threading
-IMAGE_SIZE = (250,250)          # image dimension in pixels (x and y equal) default (None, None)
+IMAGE_SIZE = (608,608)          # image dimension in pixels (x and y equal) default (None, None)
 import cgitb
 cgitb.enable(format = 'text')
 
@@ -181,6 +181,7 @@ class Ui(QtWidgets.QDialog):
 
 
         print("se ha terminado el Show")
+
     def showImage(self):
         self.updateData(PROBABILITIES_GLOB)
         strong = self.compose(PROBABILITIES_GLOB)
